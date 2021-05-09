@@ -14,6 +14,7 @@ import com.oob.exception.UserNotSameException;
 import com.oob.security.AuthenticationFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.apache.coyote.Response;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -56,12 +57,37 @@ public class PostServiceImpl implements PostService{
 
     @Override
     public PostResponse getPost(Integer postId) {
-        return null;
+        User user = userRepository.findByEmail(authenticationFacade.getUserEmail())
+                .orElseThrow(UserNotFoundException::new);
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(PostNotFoundException::new);
+
+        User author = userRepository.findById(post.getAuthor())
+                .orElseThrow(UserNotFoundException::new);
+
+        return PostResponse.builder()
+                .title(post.getTitle())
+                .content(post.getContent())
+                .createdAt(post.getCreatedAt())
+                .build();
     }
 
     @Override
     public void modifyPost(PostRequest postRequest, Integer postId) {
+        User user = userRepository.findByEmail(authenticationFacade.getUserEmail())
+                .orElseThrow(UserNotFoundException::new);
 
+        Post post = postRepository.findById(postId)
+                .orElseThrow(PostNotFoundException::new);
+
+        if(!user.getId().equals(post.getAuthor()))
+            throw new UserNotSameException();
+
+        post.setTitle(postRequest.getTitle());
+        post.setContent(postRequest.getContent());
+
+        postRepository.save(post);
     }
 
     @Override
