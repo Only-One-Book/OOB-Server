@@ -28,7 +28,4 @@ public class User {
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
     private List<Post> postList;
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
 }
